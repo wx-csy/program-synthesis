@@ -104,3 +104,29 @@ S -> x | S + S
 - `const_I` represents the set of substrings of all strings in $I$
 - `const_O` represents the set of substrings of all strings in $O$
 - `const_NIL` represents all remaining strings
+
+## Q & A
+
+Q: 启发式函数的设计？
+
+A: A*算法要求启发式函数是真实代价的乐观估计（即估计代价不能超过真实代价）才能得到正确解。
+
+启发式函数的设计是基于这样一个简单的想法：一个正确的解必然是满足语法限制的。因此，正解的最小负对数概率不会小于所有语法正确的解的负对数概率的最小值；从而可以使用后者作为前者的一个乐观估计。
+
+对每个非终结符$A \in N$，定义$h(A)$为
+
+$$
+h(A) = \max_{A\rightarrow \beta \in R, c \in C} q(A \rightarrow \beta | c) \times \prod_{\beta_i \in N} h(\beta_i)
+$$
+
+上述定义的直观含义是，将$A$推导至终结符号串的最大概率。上面的定义实际上是一个方程，可以用迭代法求出每个$h(A)$的值。
+
+然后，可以定义每个句型的估价函数：
+$$
+g(n) = -\log_2\prod_{n_i \in N} h(n_i) = -\sum_{n_i \in N} \log_2 h(n_i)
+$$
+即将$n$中的每个非终结符推导到终结符号串的概率的最大值的负对数。$g(n)$的意义是将句型$n$推导得到一个满足语法限制的程序的最大概率（但这个程序不一定满足语义限制），因此$g(n)$是当前代价的乐观估计，即$g(n) \leq g^*(n)$ (Theorem 3.3)。
+
+Q: 为什么只允许最左推导？
+
+A: 限制最左推导，可以保证得到一个句子的推导路径是唯一的，即句型图是一棵有根树。这样可以直接使用链式法则将各步的条件概率相乘得到总的概率。此外，使用最左推导可以保证在展开语法树时，当前非终结符节点的左兄弟节点已被展开，这样可以将左兄弟的内容作为上下文信息的一部分。
